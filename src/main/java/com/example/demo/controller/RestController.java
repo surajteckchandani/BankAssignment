@@ -42,13 +42,13 @@ public class RestController {
 			account.setDeleted(false);
 			account.setOpening_date(new Date());
 			accountService.save(account);
-			return new ResponseEntity<Object>("Account created successfully", HttpStatus.OK);
+			return new ResponseEntity<Object>("Account created successfully", HttpStatus.CREATED);
 			}else {
 				CustomError customError= new CustomError();
 				customError.setMessage("Username already exist");
 				customError.setStatuscode(500);
 				
-				return new ResponseEntity<Object>(customError, HttpStatus.OK);
+				return new ResponseEntity<Object>(customError, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		}catch (Exception e) {
 			// TODO: handle exception
@@ -58,14 +58,13 @@ public class RestController {
 			 Set<String> errors = new HashSet<String>(0);
 			 errors.add(e.getMessage());
 			 customError.setErrors(errors);
-			return new ResponseEntity<Object>(customError, HttpStatus.OK);
+			return new ResponseEntity<Object>(customError, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	
 	@RequestMapping(value = "/getBalance", method = RequestMethod.POST)
 	public ResponseEntity<?> getBalance(@RequestBody Account account) {
-		System.out.println("Create account");
 		if(account.getUsername()!=null ) {
 			Account acc=accountService.getBalance(account.getUsername());
 					if(acc!=null) {
@@ -74,13 +73,13 @@ public class RestController {
 						CustomError err=new CustomError();
 						err.setMessage("account with this username '"+account.getUsername()+"' dose not exist");
 						err.setStatuscode(404);
-						return new ResponseEntity<Object>(err, HttpStatus.OK);
+						return new ResponseEntity<Object>(err, HttpStatus.NOT_FOUND);
 					}
 		}else {
 			CustomError err=new CustomError();
 			err.setMessage("Please provide some username ");
 			err.setStatuscode(404);
-			return new ResponseEntity<Object>(err, HttpStatus.OK);
+			return new ResponseEntity<Object>(err, HttpStatus.NOT_FOUND);
 		}
 		
 	}
@@ -114,13 +113,11 @@ public class RestController {
 	public ResponseEntity<?> withdrawAmount(@RequestBody Transaction transaction,@PathVariable String username) {
 		if(transaction.getAmount()!=0) {
 			Account acc=accountService.getBalance(username);
-			System.out.println("current balance"+acc.getBalance());
-			System.out.println("remove balance"+transaction.getAmount());
 			if(acc.getBalance()<transaction.getAmount()) {
 				CustomError err= new CustomError();
 				err.setMessage("you dont have sufficent balance");
 				err.setStatuscode(403);
-				return new ResponseEntity<Object>(err, HttpStatus.OK);
+				return new ResponseEntity<Object>(err, HttpStatus.FORBIDDEN);
 			}else {
 				transaction.setTransaction_date(new Date());
 				transaction.setType("DEBIT");
@@ -145,7 +142,7 @@ public class RestController {
 			CustomError err= new CustomError();
 			err.setMessage("Please enter some Amount");
 			err.setStatuscode(404);
-			return new ResponseEntity<Object>(err, HttpStatus.OK);
+			return new ResponseEntity<Object>(err, HttpStatus.NOT_FOUND);
 		}
 	}
 }
